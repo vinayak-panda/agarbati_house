@@ -2,7 +2,7 @@
 ## Built with Django & SQLite
 
 
-LINK OF THE APPLICATION
+LINK OF THE APPLICATION : https://agarbati-house-1.onrender.com
 
 ---
 
