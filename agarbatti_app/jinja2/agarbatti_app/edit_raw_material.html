@@ -1,0 +1,36 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}Edit Raw Material - Agarbatti House{% endblock %}
+{% block page_title %}Edit Raw Material{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-7">
+<div class="card"><div class="card-body p-4">
+  <form method="POST">{{ csrf_input|safe }}
+    <div class="row g-3">
+      <div class="col-md-8"><label class="form-label fw-600">Material Name *</label><input type="text" name="name" class="form-control" required value="{{ material.name }}"></div>
+      <div class="col-md-4">
+        <label class="form-label fw-600">Unit</label>
+        <select name="unit" class="form-select">
+          {% for u, label in [('kg','Kilogram'),('g','Gram'),('litre','Litre'),('ml','Millilitre'),('piece','Piece'),('bundle','Bundle'),('box','Box')] %}
+          <option value="{{ u }}" {% if material.unit == u %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4"><label class="form-label fw-600">Quantity</label><input type="number" name="quantity" class="form-control" value="{{ material.quantity }}" step="0.01" min="0"></div>
+      <div class="col-md-4"><label class="form-label fw-600">Purchase Price (₹) *</label><input type="number" name="purchase_price" class="form-control" required step="0.01" value="{{ material.purchase_price }}"></div>
+      <div class="col-md-4"><label class="form-label fw-600">Low Stock Threshold</label><input type="number" name="low_stock_threshold" class="form-control" value="{{ material.low_stock_threshold }}" step="0.01"></div>
+      <div class="col-12">
+        <label class="form-label fw-600">Supplier</label>
+        <select name="supplier" class="form-select">
+          <option value="">-- No Supplier --</option>
+          {% for s in suppliers %}<option value="{{ s.id }}" {% if material.supplier_id == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12"><label class="form-label fw-600">Description</label><textarea name="description" class="form-control" rows="2">{{ material.description or '' }}</textarea></div>
+      <div class="col-12 d-flex gap-2 justify-content-end">
+        <a href="{{ url('raw_materials') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Update Material</button>
+      </div>
+    </div>
+  </form>
+</div></div>
+</div></div>
+{% endblock %}

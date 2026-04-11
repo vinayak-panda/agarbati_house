@@ -1,0 +1,204 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}New Order - Agarbatti House{% endblock %}
+{% block page_title %}New Sales Order{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body p-4">
+        <h6 class="fw-700 mb-3"><i class="fas fa-search me-2" style="color:#7d3c0a;"></i>Search & Add Products</h6>
+        <div class="position-relative mb-3">
+          <input type="text" id="prodSearch" class="form-control form-control-lg" placeholder="Type product name to search...">
+          <div id="searchResults" class="position-absolute bg-white border rounded-3 shadow w-100" style="z-index:999;display:none;max-height:250px;overflow-y:auto;top:100%;"></div>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead><tr><th>Product</th><th>Qty (Packs)</th><th>Unit Price</th><th>Total</th><th></th></tr></thead>
+            <tbody id="orderItems">
+              <tr id="emptyRow"><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-fire fa-2x mb-2 d-block opacity-25"></i>Search and add products above</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body p-4">
+        <h6 class="fw-700 mb-3"><i class="fas fa-user me-2" style="color:#7d3c0a;"></i>Customer & Payment</h6>
+        <div class="mb-3">
+          <label class="form-label fw-600" style="font-size:13px;">Select Customer</label>
+          <select id="customerId" class="form-select">
+            <option value="">Walk-in Customer</option>
+            {% for c in customers %}<option value="{{ c.id }}" data-name="{{ c.name }}">{{ c.name }} - {{ c.phone or '' }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-600" style="font-size:13px;">Customer Name</label>
+          <input type="text" id="customerName" class="form-control" value="Walk-in Customer">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-600" style="font-size:13px;">Payment Method</label>
+          <select id="paymentMethod" class="form-select">
+            <option value="cash">Cash</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+            <option value="credit">Credit</option>
+            <option value="cheque">Cheque</option>
+          </select>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Subtotal</span>
+          <span id="subtotalDisplay" class="fw-600">₹0.00</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted">Discount (₹)</span>
+          <input type="number" id="discount" class="form-control form-control-sm text-end" style="width:100px;" value="0" min="0" oninput="calculateTotal()">
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-muted">Tax GST (₹)</span>
+          <input type="number" id="tax" class="form-control form-control-sm text-end" style="width:100px;" value="0" min="0" oninput="calculateTotal()">
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-3">
+          <span class="fw-700 fs-5">TOTAL</span>
+          <span id="totalDisplay" class="fw-800 fs-4 text-success">₹0.00</span>
+        </div>
+        <button class="btn btn-primary w-100" onclick="submitOrder()" id="submitBtn" disabled>
+          <i class="fas fa-check-circle me-2"></i>Generate Order
+        </button>
+        <a href="{{ url('orders') }}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ request.META.CSRF_COOKIE }}';
+let items = [];
+
+document.getElementById('customerId').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  document.getElementById('customerName').value = this.value ? opt.dataset.name : 'Walk-in Customer';
+});
+
+let searchTimeout;
+document.getElementById('prodSearch').addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  const q = this.value.trim();
+  if (q.length < 2) { document.getElementById('searchResults').style.display = 'none'; return; }
+  searchTimeout = setTimeout(() => {
+    fetch(`/api/products/search/?q=${encodeURIComponent(q)}`)
+      .then(r => r.json())
+      .then(data => {
+        const results = document.getElementById('searchResults');
+        if (!data.length) { results.style.display = 'none'; return; }
+        results.innerHTML = data.map(p => `
+          <div class="p-3 border-bottom" style="cursor:pointer;" onclick='addItem(${JSON.stringify(p)})'>
+            <div class="fw-600">${p.name}</div>
+            <div class="text-muted" style="font-size:12px;">₹${p.price.toFixed(2)} | Stock: ${p.stock} packs</div>
+          </div>`).join('');
+        results.style.display = 'block';
+      });
+  }, 300);
+});
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#prodSearch') && !e.target.closest('#searchResults'))
+    document.getElementById('searchResults').style.display = 'none';
+});
+
+function addItem(prod) {
+  document.getElementById('searchResults').style.display = 'none';
+  document.getElementById('prodSearch').value = '';
+  const existing = items.find(i => i.product_id === prod.id);
+  if (existing) {
+    if (existing.quantity < prod.stock) existing.quantity++;
+    else { alert('Not enough stock!'); return; }
+  } else {
+    items.push({ product_id: prod.id, product_name: prod.name, quantity: 1, unit_price: prod.price, max_qty: prod.stock });
+  }
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('orderItems');
+  if (!items.length) {
+    tbody.innerHTML = '<tr id="emptyRow"><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-fire fa-2x mb-2 d-block opacity-25"></i>Search and add products above</td></tr>';
+    document.getElementById('submitBtn').disabled = true;
+    calculateTotal(); return;
+  }
+  tbody.innerHTML = items.map((item, i) => `
+    <tr>
+      <td class="fw-500">${item.product_name}</td>
+      <td style="width:110px;"><input type="number" class="form-control form-control-sm" value="${item.quantity}" min="1" max="${item.max_qty}" onchange="updateQty(${i}, this.value)"></td>
+      <td>₹${item.unit_price.toFixed(2)}</td>
+      <td class="fw-600 text-success">₹${(item.quantity * item.unit_price).toFixed(2)}</td>
+      <td><button class="btn btn-sm btn-outline-danger" onclick="removeItem(${i})"><i class="fas fa-times"></i></button></td>
+    </tr>`).join('');
+  document.getElementById('submitBtn').disabled = false;
+  calculateTotal();
+}
+
+function updateQty(i, val) {
+  val = parseInt(val);
+  if (val < 1) val = 1;
+  if (val > items[i].max_qty) { alert('Not enough stock!'); val = items[i].max_qty; }
+  items[i].quantity = val; renderTable();
+}
+
+function removeItem(i) { items.splice(i, 1); renderTable(); }
+
+function calculateTotal() {
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+  const tax = parseFloat(document.getElementById('tax').value) || 0;
+  document.getElementById('subtotalDisplay').textContent = '₹' + subtotal.toFixed(2);
+  document.getElementById('totalDisplay').textContent = '₹' + Math.max(0, subtotal - discount + tax).toFixed(2);
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    document.cookie.split(';').forEach(c => {
+      c = c.trim();
+      if (c.startsWith(name + '=')) cookieValue = decodeURIComponent(c.slice(name.length + 1));
+    });
+  }
+  return cookieValue;
+}
+
+function submitOrder() {
+  if (!items.length) return;
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+  const tax = parseFloat(document.getElementById('tax').value) || 0;
+  const total = Math.max(0, subtotal - discount + tax);
+  const payload = {
+    customer_id: document.getElementById('customerId').value || null,
+    customer_name: document.getElementById('customerName').value || 'Walk-in Customer',
+    payment_method: document.getElementById('paymentMethod').value,
+    subtotal, discount, tax, total,
+    items: items.map(i => ({ product_id: i.product_id, product_name: i.product_name, quantity: i.quantity, unit_price: i.unit_price, total_price: i.quantity * i.unit_price }))
+  };
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+  fetch('/orders/new/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(data => {
+    if (data.success) window.location.href = `/orders/${data.order_id}/`;
+    else {
+      alert(data.error || 'Error!');
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').innerHTML = '<i class="fas fa-check-circle me-2"></i>Generate Order';
+    }
+  });
+}
+</script>
+{% endblock %}

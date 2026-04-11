@@ -1,0 +1,28 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}Production - Agarbatti House{% endblock %}
+{% block page_title %}Production Batches{% endblock %}
+{% block content %}
+<div class="card"><div class="card-body">
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{{ url('add_production') }}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Log Production</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Batch No</th><th>Product</th><th>Qty Produced</th><th>Production Cost</th><th>Status</th><th>Produced By</th><th>Date</th></tr></thead>
+      <tbody>
+      {% for b in batches %}
+      <tr>
+        <td><span class="badge" style="background:#7d3c0a;">{{ b.batch_number }}</span></td>
+        <td class="fw-600">{{ b.product.name }}</td>
+        <td>{{ b.quantity_produced }} packs</td>
+        <td>₹{{ b.production_cost }}</td>
+        <td><span class="badge bg-{{ 'success' if b.status == 'completed' else ('warning' if b.status == 'in_progress' else 'danger') }}">{{ b.status|replace('_',' ')|title }}</span></td>
+        <td>{{ b.produced_by.get_full_name() or b.produced_by.username if b.produced_by else '-' }}</td>
+        <td class="text-muted small">{{ b.created_at.strftime('%d %b %Y') }}</td>
+      </tr>
+      {% else %}<tr><td colspan="7" class="text-center py-5 text-muted"><i class="fas fa-industry fa-2x mb-2 d-block opacity-25"></i>No production batches yet</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}Add Product - Agarbatti House{% endblock %}
+{% block page_title %}Add New Product{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-9">
+<div class="card"><div class="card-body p-4">
+  <form method="POST">
+    {{ csrf_input|safe }}
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label fw-600">Product Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Rose Agarbatti"></div>
+      <div class="col-md-6"><label class="form-label fw-600">Fragrance</label><input type="text" name="fragrance" class="form-control" placeholder="e.g. Rose, Sandalwood, Jasmine"></div>
+      <div class="col-md-4">
+        <label class="form-label fw-600">Category</label>
+        <select name="category" class="form-select">
+          <option value="">-- Select Category --</option>
+          {% for c in categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4"><label class="form-label fw-600">Length (cm)</label><input type="number" name="length_cm" class="form-control" value="20" step="0.5"></div>
+      <div class="col-md-4"><label class="form-label fw-600">Burn Time (min)</label><input type="number" name="burn_time_min" class="form-control" value="30"></div>
+      <div class="col-md-3"><label class="form-label fw-600">Sticks Per Pack</label><input type="number" name="sticks_per_pack" class="form-control" value="10" min="1"></div>
+      <div class="col-md-3"><label class="form-label fw-600">Packs in Stock</label><input type="number" name="packs_in_stock" class="form-control" value="0" min="0"></div>
+      <div class="col-md-3"><label class="form-label fw-600">Purchase Price (₹) *</label><input type="number" name="purchase_price" class="form-control" required step="0.01" min="0"></div>
+      <div class="col-md-3"><label class="form-label fw-600">Selling Price (₹) *</label><input type="number" name="selling_price" class="form-control" required step="0.01" min="0"></div>
+      <div class="col-md-4"><label class="form-label fw-600">Low Stock Threshold</label><input type="number" name="low_stock_threshold" class="form-control" value="20"></div>
+      <div class="col-12"><label class="form-label fw-600">Description</label><textarea name="description" class="form-control" rows="2" placeholder="Additional notes..."></textarea></div>
+      <div class="col-12 d-flex gap-2 justify-content-end">
+        <a href="{{ url('products') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Product</button>
+      </div>
+    </div>
+  </form>
+</div></div>
+</div></div>
+{% endblock %}

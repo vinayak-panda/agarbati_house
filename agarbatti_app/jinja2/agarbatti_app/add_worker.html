@@ -1,0 +1,23 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}Add Worker{% endblock %}
+{% block page_title %}Add Worker{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-7">
+<div class="card"><div class="card-body p-4">
+  <form method="POST">{{ csrf_input|safe }}
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label fw-600">Full Name *</label><input type="text" name="name" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-600">Phone</label><input type="text" name="phone" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label fw-600">Role</label><input type="text" name="role" class="form-control" placeholder="e.g. Packer, Mixer, Supervisor"></div>
+      <div class="col-md-6"><label class="form-label fw-600">Monthly Salary (₹)</label><input type="number" name="salary" class="form-control" value="0" step="0.01" min="0"></div>
+      <div class="col-md-6"><label class="form-label fw-600">Joining Date</label><input type="date" name="joining_date" class="form-control" value="{{ now().strftime('%Y-%m-%d') }}"></div>
+      <div class="col-12"><label class="form-label fw-600">Address</label><textarea name="address" class="form-control" rows="2"></textarea></div>
+      <div class="col-12 d-flex gap-2 justify-content-end">
+        <a href="{{ url('workers') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Worker</button>
+      </div>
+    </div>
+  </form>
+</div></div>
+</div></div>
+{% endblock %}

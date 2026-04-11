@@ -1,0 +1,120 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}Reports - Agarbatti House{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+{% block content %}
+<div class="card mb-4"><div class="card-body py-3">
+  <div class="d-flex gap-2 align-items-center">
+    <span class="fw-600 me-2">Period:</span>
+    {% for p, label in [('today','Today'),('week','Last 7 Days'),('month','This Month'),('year','This Year')] %}
+    <a href="{{ url('reports') }}?period={{ p }}" class="btn btn-sm {% if period == p %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</div></div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#7d3c0a,#a04010);">
+      <h6>Total Revenue</h6><h2>₹{{ total_revenue }}</h2><i class="fas fa-rupee-sign icon"></i>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1e8449,#27ae60);">
+      <h6>Total Orders</h6><h2>{{ total_orders }}</h2><i class="fas fa-receipt icon"></i>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#78281f,#e74c3c);">
+      <h6>Total Expenses</h6><h2>₹{{ total_expenses }}</h2><i class="fas fa-wallet icon"></i>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#b7770d,#d4ac0d);">
+      <h6>Net Profit</h6>
+      <h2>₹{{ profit|round(2) }}</h2>
+      <i class="fas fa-chart-line icon"></i>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h6 class="fw-700 mb-3">Top Selling Products</h6>
+      {% if top_products %}
+      <table class="table table-sm">
+        <thead><tr><th>#</th><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+        <tbody>
+        {% for p in top_products %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="fw-500">{{ p.product_name }}</td>
+          <td>{{ p.total_qty }} packs</td>
+          <td class="fw-600 text-success">₹{{ p.total_revenue }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="text-center py-4 text-muted">No sales data for this period</div>{% endif %}
+    </div></div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h6 class="fw-700 mb-3">Expense Breakdown</h6>
+      {% if expense_breakdown %}
+      <table class="table table-sm">
+        <thead><tr><th>Category</th><th>Total</th></tr></thead>
+        <tbody>
+        {% for e in expense_breakdown %}
+        <tr>
+          <td><span class="badge bg-secondary">{{ e.category|replace('_',' ')|title }}</span></td>
+          <td class="fw-600 text-danger">₹{{ e.total }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="text-center py-4 text-muted">No expenses for this period</div>{% endif %}
+    </div></div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h6 class="fw-700 mb-3">Low Stock Products</h6>
+      {% if low_stock_products %}
+      <table class="table table-sm">
+        <thead><tr><th>Product</th><th>Stock</th><th>Threshold</th></tr></thead>
+        <tbody>
+        {% for p in low_stock_products %}
+        <tr>
+          <td class="fw-600 text-danger">{{ p.name }}</td>
+          <td><span class="badge bg-danger">{{ p.packs_in_stock }} packs</span></td>
+          <td>{{ p.low_stock_threshold }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="text-center py-3 text-muted"><i class="fas fa-check-circle text-success me-2"></i>All stocks are good!</div>{% endif %}
+    </div></div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h6 class="fw-700 mb-3">Low Raw Material Stock</h6>
+      {% if low_stock_materials %}
+      <table class="table table-sm">
+        <thead><tr><th>Material</th><th>Stock</th><th>Unit</th></tr></thead>
+        <tbody>
+        {% for m in low_stock_materials %}
+        <tr>
+          <td class="fw-600 text-warning">{{ m.name }}</td>
+          <td><span class="badge bg-warning text-dark">{{ m.quantity }}</span></td>
+          <td>{{ m.unit }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="text-center py-3 text-muted"><i class="fas fa-check-circle text-success me-2"></i>All materials are stocked!</div>{% endif %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

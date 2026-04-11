@@ -1,0 +1,34 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}Workers - Agarbatti House{% endblock %}
+{% block page_title %}Workers{% endblock %}
+{% block content %}
+<div class="card"><div class="card-body">
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{{ url('add_worker') }}" class="btn btn-primary"><i class="fas fa-user-plus me-2"></i>Add Worker</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Phone</th><th>Salary</th><th>Joining Date</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for w in workers %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td class="fw-600">{{ w.name }}</td>
+        <td>{{ w.role or '-' }}</td>
+        <td>{{ w.phone or '-' }}</td>
+        <td class="fw-600">₹{{ w.salary }}</td>
+        <td class="text-muted small">{{ w.joining_date.strftime('%d %b %Y') }}</td>
+        <td><span class="badge bg-{{ 'success' if w.is_active else 'secondary' }}">{{ 'Active' if w.is_active else 'Inactive' }}</span></td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{{ url('edit_worker', pk=w.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+            {% if request.user.is_staff %}<a href="{{ url('delete_worker', pk=w.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?')"><i class="fas fa-trash"></i></a>{% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="8" class="text-center py-4 text-muted">No workers found</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div></div>
+{% endblock %}

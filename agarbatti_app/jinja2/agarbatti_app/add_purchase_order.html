@@ -1,0 +1,95 @@
+{% extends 'agarbatti_app/base.html' %}
+{% block title %}New Purchase Order{% endblock %}
+{% block page_title %}New Purchase Order{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="card"><div class="card-body p-4">
+      <h6 class="fw-700 mb-3">Add Raw Materials</h6>
+      <div class="row g-2 mb-3">
+        <div class="col-md-5">
+          <select id="matSelect" class="form-select">
+            <option value="">-- Select Raw Material --</option>
+            {% for m in materials %}<option value="{{ m.id }}" data-name="{{ m.name }}" data-price="{{ m.purchase_price }}" data-unit="{{ m.unit }}">{{ m.name }} ({{ m.quantity }} {{ m.unit }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3"><input type="number" id="orderQty" class="form-control" placeholder="Quantity" min="0.01" step="0.01" value="1"></div>
+        <div class="col-md-3"><input type="number" id="orderPrice" class="form-control" placeholder="Unit Price" step="0.01" min="0"></div>
+        <div class="col-md-1"><button class="btn btn-primary w-100" onclick="addItem()"><i class="fas fa-plus"></i></button></div>
+      </div>
+      <table class="table">
+        <thead><tr><th>Material</th><th>Qty</th><th>Unit Price</th><th>Total</th><th></th></tr></thead>
+        <tbody id="poItems"><tr id="emptyRow"><td colspan="5" class="text-center py-3 text-muted">No items added yet</td></tr></tbody>
+      </table>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card"><div class="card-body p-4">
+      <h6 class="fw-700 mb-3">Order Details</h6>
+      <div class="mb-3">
+        <label class="form-label fw-600">Supplier *</label>
+        <select id="supplierId" class="form-select">
+          <option value="">-- Select Supplier --</option>
+          {% for s in suppliers %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="mb-3"><label class="form-label fw-600">Notes</label><textarea id="poNotes" class="form-control" rows="2"></textarea></div>
+      <hr>
+      <div class="d-flex justify-content-between mb-3">
+        <span class="fw-700 fs-5">Total</span>
+        <span id="totalDisplay" class="fw-800 fs-4" style="color:#7d3c0a;">₹0.00</span>
+      </div>
+      <button class="btn btn-primary w-100" onclick="submitPO()" id="submitBtn" disabled><i class="fas fa-paper-plane me-2"></i>Place Order</button>
+      <a href="{{ url('purchase_orders') }}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let items = [];
+document.getElementById('matSelect').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (this.value) document.getElementById('orderPrice').value = opt.dataset.price;
+});
+function addItem() {
+  const sel = document.getElementById('matSelect');
+  const qty = parseFloat(document.getElementById('orderQty').value);
+  const price = parseFloat(document.getElementById('orderPrice').value);
+  if (!sel.value || !qty || !price) { alert('Fill all fields'); return; }
+  const opt = sel.options[sel.selectedIndex];
+  const ex = items.find(i => i.material_id == sel.value);
+  if (ex) { ex.quantity += qty; ex.total_price = ex.quantity * ex.unit_price; }
+  else items.push({ material_id: sel.value, material_name: opt.dataset.name, quantity: qty, unit_price: price, total_price: qty * price });
+  renderTable();
+}
+function removeItem(i) { items.splice(i, 1); renderTable(); }
+function renderTable() {
+  const tbody = document.getElementById('poItems');
+  if (!items.length) {
+    tbody.innerHTML = '<tr id="emptyRow"><td colspan="5" class="text-center py-3 text-muted">No items added yet</td></tr>';
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('totalDisplay').textContent = '₹0.00'; return;
+  }
+  tbody.innerHTML = items.map((item, i) => `<tr><td class="fw-500">${item.material_name}</td><td>${item.quantity}</td><td>₹${item.unit_price.toFixed(2)}</td><td class="fw-600">₹${item.total_price.toFixed(2)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="removeItem(${i})"><i class="fas fa-times"></i></button></td></tr>`).join('');
+  document.getElementById('totalDisplay').textContent = '₹' + items.reduce((s, i) => s + i.total_price, 0).toFixed(2);
+  document.getElementById('submitBtn').disabled = false;
+}
+function getCookie(name) {
+  let v = null;
+  document.cookie.split(';').forEach(c => { c = c.trim(); if (c.startsWith(name+'=')) v = decodeURIComponent(c.slice(name.length+1)); });
+  return v;
+}
+function submitPO() {
+  if (!document.getElementById('supplierId').value) { alert('Select supplier'); return; }
+  if (!items.length) { alert('Add items'); return; }
+  document.getElementById('submitBtn').disabled = true;
+  fetch('/purchase-orders/add/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify({ supplier_id: document.getElementById('supplierId').value, total_amount: items.reduce((s,i)=>s+i.total_price,0), notes: document.getElementById('poNotes').value, items })
+  }).then(r => r.json()).then(d => { if (d.success) window.location.href = '/purchase-orders/'; else { alert('Error!'); document.getElementById('submitBtn').disabled = false; } });
+}
+</script>
+{% endblock %}
