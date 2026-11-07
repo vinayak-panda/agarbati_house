@@ -1,4 +1,4 @@
-# 🪔 Agarbatti House - Management System
+# Agarbatti House - Management System
 ## Built with Django & SQLite
 
 
@@ -6,25 +6,25 @@ LINK OF THE APPLICATION : https://agarbati-house-1.onrender.com
 
 ---
 
-## 🚀 Features
-- ✅ Login with Admin & Staff roles
-- ✅ Dashboard with sales charts & alerts
-- ✅ Product management (Agarbatti products)
-- ✅ Raw material inventory tracking
-- ✅ Category management
-- ✅ Sales Order management with PDF invoice
-- ✅ Customer management & order history
-- ✅ Supplier management
-- ✅ Purchase Orders (raw materials, auto stock update)
-- ✅ Production batch tracking
-- ✅ Expense management
-- ✅ Worker management
-- ✅ Reports: Sales, Profit, Top products, Low stock
-- ✅ Low stock alerts for products & raw materials
+## Features
+- Login with Admin & Staff roles
+- Dashboard with sales charts & alerts
+- Product management (Agarbatti products)
+- Raw material inventory tracking
+- Category management
+- Sales Order management with PDF invoice
+- Customer management & order history
+- Supplier management
+- Purchase Orders (raw materials, auto stock update)
+- Production batch tracking
+- Expense management
+- Worker management
+- Reports: Sales, Profit, Top products, Low stock
+- Low stock alerts for products & raw materials
 
 ---
 
-## ⚙️ Local Setup
+## Local Setup
 
 ### Step 1: Install Dependencies
 ```bash
@@ -53,7 +53,7 @@ http://localhost:8000
 
 ---
 
-## 🔐 Login Credentials
+## Login Credentials
 
 | Role  | Username | Password  |
 |-------|----------|-----------|
@@ -62,10 +62,10 @@ http://localhost:8000
 
 ---
 
-## 🚀 Render Deployment
+## Render Deployment
 
 ### Step 1: Push to GitHub
-```bash
+
 git init
 git add .
 git commit -m "Initial commit"
@@ -90,8 +90,7 @@ git push -u origin main
 
 ---
 
-## 📁 Project Structure
-```
+Project Structure
 agarbatti_app/
 ├── manage.py
 ├── requirements.txt
@@ -129,17 +128,11 @@ agarbatti_app/
             ├── expenses.html
             ├── workers.html
             └── reports.html
-```
 
----
+## Tech Stack
+- Backend: Django 4.2
+- Database: SQLite (local) / PostgreSQL (production)
+- Frontend: Bootstrap 5, Chart.js, Font Awesome
+- PDF: ReportLab
+- Deploy: Gunicorn + WhiteNoise
 
-## 🛠️ Tech Stack
-- **Backend:** Django 4.2
-- **Database:** SQLite (local) / PostgreSQL (production)
-- **Frontend:** Bootstrap 5, Chart.js, Font Awesome
-- **PDF:** ReportLab
-- **Deploy:** Gunicorn + WhiteNoise
-
----
-
-Made with ❤️ for TY IT Project 🪔
