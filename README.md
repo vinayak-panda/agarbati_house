@@ -133,6 +133,5 @@ agarbatti_app/
 - Backend: Django 4.2
 - Database: SQLite (local) / PostgreSQL (production)
 - Frontend: Bootstrap 5, Chart.js, Font Awesome
-- PDF: ReportLab
 - Deploy: Gunicorn + WhiteNoise
 
